@@ -9,16 +9,12 @@ const app     		= express();
 // Initial Conditions 
 const PORT = process.env.PORT || 3000;
 // -------------------------------------------
-// Imported Stuff 
-const artistDataList               = require('./artist_data/august_data'); 
-const { scrapeExchangeLA, scrape } = require('./scraper_logic_files/scraperEngineFunctions'); 
-const scrapeTimeNightClub          = require('./scraper_logic_files/timeOCScrapeLogic'); 
+// Imported Scraper Logic 
+const runScraperEngine = require('./scraper_logic_files/master_scraper_engine'); 
 
-// REST API Keys 
+// REST API Keys and Database Configuration
 // --------------------------------------
 const secret = require ('./config/dev_keys.js'); 
-
-// Test
 
 // Connect to MySQL Database 
 // --------------------------------------
@@ -46,50 +42,19 @@ connection.query('USE tonight_only_db');
 app.use(bodyParser.json());
 // -------------------------------------------
 // GET Routes 
-app.get('/api', (req, res, next) => {
-	// Send the API Data Endpoint
-	res.send(artistDataList); 
-});
 
-
-const submitIntoDatabase = async (data) => {
-
-	
-	for(let i = 0; i < data.length; i++) {
-
-		let convertedDate = new Date(data[ i ].date); 
-		let eventMonth    = dateFormat(convertedDate, 'mmmm');
-		let eventDay      = dateFormat(convertedDate, 'dd');
-		let eventYear     = dateFormat(convertedDate, 'yyyy');
-		let location      = data[ i ].venue; 
-		let artist        = data[ i ].artist; 
-
-		let query = `INSERT INTO events (eventMonth, eventDay, eventYear, location, artist) 
-					 VALUES ('${eventMonth}', '${eventDay}', '${eventYear}', '${location}', '${artist}')`; 
-
-		await connection.query(query); 
-	}
-}
 
 app.get('/scrape', async (req, res, next) => {
-
-	const venueData = {
-		exchangeLA: null,
-		avalonHollywood: null,
-		timeNightClub: null,
-	}
-
-	// await scrapeExchangeLA(data => venueData['exchangeLA'] = data);
-	await scrapeTimeNightClub(submitIntoDatabase); 
-
-	// res.send({status: "success", venueData});
-	res.send({status: "success"});
+	let status = ''; 
+	await runScraperEngine('timeoc', () => status = 'ok'); 
+	res.send({status});
 });
 
-
+// Temporary Assignment of Dummy Data to Be Sent to the React Native App 
 app.get('/dummy_data', (req, res, next) => {
 
-	    const listOfEvents = [{month: 'August 2018', 
+	    const listOfEvents = [
+	    			  {month: 'August 2018', 
  					   events: ['Aug. 4th | Hard Summer 2018 ',
  					   		  'Aug. 10th  | Timmy Trumpet at Academy LA',
  					   		  'Aug. 11th  | Borgeous at Exchange LA'
@@ -110,6 +75,7 @@ app.get('/get_all_events', (req, res, next) => {
 
 	const query = 'SELECT * FROM events WHERE eventMonth="July"'; 
 
+	// Query The Database 
 	connection.query(query, (err, rows) => {
 
 		let listOfEvents = [{
@@ -118,14 +84,13 @@ app.get('/get_all_events', (req, res, next) => {
 		}];
 
 		if (!err) {
-			
 			// Format The Date 
 			for (let i = 0; i < rows.length; i++) {
-				let { eventMonth, eventDay, eventYear, location, artist } = rows[ i ]; 
+				let { eventMonth, eventDay, eventYear, location, eventName } = rows[ i ]; 
 				let eventFullDate = `${eventMonth} ${eventDay}, ${eventYear}`;
 				eventFullDate = dateFormat(new Date(eventFullDate), "ddd. mmmm dS yyyy"); 
 
-				listOfEvents[ 0 ].events.push(eventFullDate + ' | ' + artist + ' @ ' + location);
+				listOfEvents[ 0 ].events.push(eventFullDate + ' - ' + eventName + ' @ ' + location);
 			}	
 
 		 	res.send({status: "success", events: listOfEvents});
@@ -137,13 +102,10 @@ app.get('/get_all_events', (req, res, next) => {
 	})
 });
 
-
-
-// -------------------------------------------
-// POST Routes 
-
-
-
 // -------------------------------------------
 // Activate Server Engine 
 app.listen(PORT, () => console.log(`Listening on PORT: ${PORT}`));
+
+// Expose Dependant Modules to Other Files 
+// -------------------------------------------
+module.exports = connection; 

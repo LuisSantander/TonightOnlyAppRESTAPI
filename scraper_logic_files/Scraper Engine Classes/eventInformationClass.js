@@ -1,19 +1,16 @@
-
-
-
 class EventInfo {
-	constructor(venue, venueEmail, venueAddress) {
+	constructor(venue, venuePhone, venueAddress) {
 		this.venue        = venue        || ''; 
-		this.venueEmail   = venueEmail   || ''; 
+		this.venuePhone   = venuePhone   || '';
 		this.venueAddress = venueAddress || ''; 
 	}
 
-	setArtist(artist) {
-		this.artist = artist; 
+	setEventName(eventName) {
+		this.eventName = eventName; 
 	}
 
-	setDate(date) {
-		this.date = date; 
+	setEventDate(eventDate) {
+		this.eventDate = eventDate; 
 	}
 
 	setTicketLink(ticketLink) {
@@ -26,17 +23,15 @@ class EventInfo {
 
 	getEventDataObject() {
 		return {
-			artist:       this.artist,
-			date:         this.date, 
+			eventDate:    this.eventDate, 
+			eventName:    this.eventName,
 			venue:        this.venue,
-			venueEmail:   this.venueEmail,
+			venuePhone:   this.venuePhone, 
 			venueAddress: this.venueAddress,
+			imageURL: 	  this.imageURL, 
 			ticketLink:   this.ticketLink,
-			imageURL:     this.imageURL
 		}
 	}
 }
-
-
 
 module.exports = EventInfo; 
