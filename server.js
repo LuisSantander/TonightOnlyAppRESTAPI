@@ -104,7 +104,7 @@ app.get('/dummy_data', (req, res, next) => {
  		res.send({events: listOfEvents}); 
 });
 
-app.get('/getAllEvents', (req, res, next) => {
+app.get('/get_all_events', (req, res, next) => {
 
 	const query = 'SELECT * FROM events WHERE eventMonth="July"'; 
 
