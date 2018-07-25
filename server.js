@@ -12,15 +12,19 @@ const PORT = process.env.PORT || 3000;
 // Imported Stuff 
 const artistDataList               = require('./artist_data/august_data'); 
 const { scrapeExchangeLA, scrape } = require('./scraper_logic_files/scraperEngineFunctions'); 
-const scrapeTimeNightClub        = require('./scraper_logic_files/timeOCScrapeLogic'); 
+const scrapeTimeNightClub          = require('./scraper_logic_files/timeOCScrapeLogic'); 
+
+// REST API Keys 
+// --------------------------------------
+const secret = require ('./config/dev_keys.js'); 
 
 // Connect to MySQL Database 
 // --------------------------------------
 const connection = mysql.createConnection({
-					host     : 'localhost',
-					user     : 'lsantanderprox',
-					password : 'luis216764',
-					database : 'crypto_dev_db'
+					host     : secret.MYSQL_DEV_HOST,
+					user     : secret.MYSQL_DEV_USER,
+					password : secret.MYSQL_DEV_PASS,
+					database : secret.MYSQL_DEV_DB
 				});
 
 connection.connect((err) => {
@@ -126,6 +130,7 @@ app.get('/getAllEvents', (req, res, next) => {
 
 		} else {
 			console.log(err); 
+			res.send({status: "Something Went Wrong", events: []}); 
 		}
 	})
 });
