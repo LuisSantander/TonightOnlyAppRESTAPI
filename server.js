@@ -18,6 +18,8 @@ const scrapeTimeNightClub          = require('./scraper_logic_files/timeOCScrape
 // --------------------------------------
 const secret = require ('./config/dev_keys.js'); 
 
+// Test
+
 // Connect to MySQL Database 
 // --------------------------------------
 const connection = mysql.createConnection({
