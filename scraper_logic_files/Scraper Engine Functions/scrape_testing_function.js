@@ -1,6 +1,7 @@
 //////////////////////////////////////////////////////////
-// Scraper Logic for Avalon Hollywood - Hollywood, CA  
+// Scraper Logic for Time Night Club - Orange County, CA 
 // -------------------------------------------------------
+
 // Required Modules 
 //////////////////////////////////
 const request    = require('request-promise'); 
@@ -37,19 +38,25 @@ const getScrapedData = async (link, venueName, venuePhoneNumber, venueAddress) =
   	return payload.getEventDataObject(); 
 }
 
-const scrapeAvalonHollywood = async (linksToScrape, venueName, venuePhoneNumber, venueAddress) => {
+const scrapeTestingFunction = async (linksToScrape, venueName, venuePhoneNumber, venueAddress) => {
 
-	console.log("Scraping Avalon Hollywood");
+	console.log("Amount of Links to Scrape: ", linksToScrape.length);
+
+	// console.log('Link to Scrape: ', linksToScrape[ 0 ]); 
+
+	// let data = await getScrapedData('https://wl.seetickets.us' + linksToScrape[ 0 ], venueName, venuePhoneNumber, venueAddress);
 
 	for (let i = 0; i < linksToScrape.length; i++) {
 		let data = await getScrapedData('https://wl.seetickets.us' + linksToScrape[ i ], venueName, venuePhoneNumber, venueAddress);
 
-		// Store The Data Extracted into the Database 
-		// ------------------------------------------
-		// await storeIntoDatabase(data); 
-		// ------------------------------------------
+		// Test Console Logout
+		// --------------------
+		console.log(data);
+		// --------------------
+	// Store The Data Extracted into the Database 
+	// await storeIntoDatabase(data); 
 	}
 }	
 
-module.exports = scrapeAvalonHollywood; 
+module.exports = scrapeTestingFunction;
 // -------------------------------------------------------

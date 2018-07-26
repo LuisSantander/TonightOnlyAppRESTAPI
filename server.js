@@ -25,50 +25,30 @@ const connection = mysql.createConnection({
 					database : secret.MYSQL_DEV_DB
 				});
 
-connection.connect((err) => {
+// connection.connect((err) => {
 
-	if(err) {
-		console.log('error 1: mysql error connecting: ' + err.stack); 
-		return; 
-	}
+// 	if(err) {
+// 		console.log('error 1: mysql error connecting: ' + err.stack); 
+// 		return; 
+// 	}
 
-	console.log('connected as id ' + connection.threadId);
-});
+// 	console.log('connected as id ' + connection.threadId);
+// });
 
-connection.query('USE tonight_only_db');
+// connection.query('USE tonight_only_db');
 
 // -------------------------------------------
 // Middleware
 app.use(bodyParser.json());
 // -------------------------------------------
 // GET Routes 
-
-
 app.get('/scrape', async (req, res, next) => {
 	let status = ''; 
-	await runScraperEngine('timeoc', () => status = 'ok'); 
+	// await runScraperEngine('timeoc', () => status = 'ok'); 
+	// await runScraperEngine('sound', () => status = 'ok'); 
+	await runScraperEngine('avalon', () => status = 'ok'); 
+
 	res.send({status});
-});
-
-// Temporary Assignment of Dummy Data to Be Sent to the React Native App 
-app.get('/dummy_data', (req, res, next) => {
-
-	    const listOfEvents = [
-	    			  {month: 'August 2018', 
- 					   events: ['Aug. 4th | Hard Summer 2018 ',
- 					   		  'Aug. 10th  | Timmy Trumpet at Academy LA',
- 					   		  'Aug. 11th  | Borgeous at Exchange LA'
- 					   		  ]
- 					   },
- 					   {
- 					   	month: 'September 2018',
- 					   	events: [ 'Sept. 1st – Ookay at the Fonda Theatre',
- 					   			'Sept. 2nd – Nervo at Academy LA',
- 					   			'Sept. 14th – Nocturnal Wonderland 2018 at Glen Helen Regional Park'
- 					    ]}
- 		];
-
- 		res.send({events: listOfEvents}); 
 });
 
 app.get('/get_all_events', (req, res, next) => {

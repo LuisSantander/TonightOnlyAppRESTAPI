@@ -8,6 +8,7 @@ const websiteLinkCrawlerFunction = async (venueLinkData) => {
 	let linksToScrape   = []; 
 
 	await request(venueLinkData[ 0 ], function(error, response, html){
+
 	      if (!error) {
 	      	let $                   = cheerio.load(html);
 	      	let eventLinksExtracted = $(venueLinkData[ 1 ]);  
