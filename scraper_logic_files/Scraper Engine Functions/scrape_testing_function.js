@@ -1,10 +1,10 @@
 //////////////////////////////////////////////////////////
-// Scraper Logic for Time Night Club - Orange County, CA 
+// Scraper Testing Function 
 // -------------------------------------------------------
 
 // Required Modules 
 //////////////////////////////////
-const request    = require('request-promise'); 
+const phantom    = require('phantom'); 
 const cheerio    = require('cheerio'); 
 
 // Imported Functions and Classes 
@@ -12,51 +12,65 @@ const cheerio    = require('cheerio');
 const eventPayload      = require('../Scraper Engine Classes/eventInformationClass'); 
 const storeIntoDatabase = require('../Scraper Engine Functions/store_into_db_function'); 
 
-const getScrapedData = async (link, venueName, venuePhoneNumber, venueAddress) => {
-
-	console.log(venueName);
+const getScrapedData = async (url, venueName, venuePhoneNumber, venueAddress) => {
+	// PhantomJS Logic 
+	const phantomInstance = await phantom.create(); 
+	const page		      = await phantomInstance.createPage(); 
+						    await page.on('onLoadFinished', () => {});
+	const result 		  = await page.open(url); 
 
 	const payload = new eventPayload(
 					    venueName, 
 					    venuePhoneNumber,
 					    venueAddress); 
 
-	await request(link, (err, res, htmlCraweled) => {
+	console.log('URL being scraped: ', url); 
 
-		$ = cheerio.load(htmlCraweled);
+	if (result !== 'fail') {
 
-		// Testing
-		// ----------------
-		// console.log($('div.event-images-box').find('img').first()[ 0 ].attribs.src);
-		// ---------------- 
-		payload.setEventName($('div.event-bar-left').find('h2.event-h2').first().text().trim());
-		payload.setEventDate($('div.event-bar-left').find('h3.event-h3').first().text().trim()); 
-		payload.setTicketLink(link); 
-		payload.setImageLink($('div.event-images-box').find('img').first()[ 0 ].attribs.src);
-  	});	
+		const content = await page.property('content'); 
+		const $	 	  = cheerio.load(content); 
 
-  	return payload.getEventDataObject(); 
+		console.log($('div'));
+
+
+	
+
+	} else {
+		// if made it this far something failed with loading the url 
+	}
+
+
+	phantomInstance.exit(); 
+
+	return payload; 
 }
 
 const scrapeTestingFunction = async (linksToScrape, venueName, venuePhoneNumber, venueAddress) => {
 
 	console.log("Amount of Links to Scrape: ", linksToScrape.length);
+	console.log('Venue Name: ', venueName);
 
-	// console.log('Link to Scrape: ', linksToScrape[ 0 ]); 
+	let data = await getScrapedData(linksToScrape[ 3 ], venueName, venuePhoneNumber, venueAddress);
 
-	// let data = await getScrapedData('https://wl.seetickets.us' + linksToScrape[ 0 ], venueName, venuePhoneNumber, venueAddress);
+	// console.log(data); 
 
-	for (let i = 0; i < linksToScrape.length; i++) {
-		let data = await getScrapedData('https://wl.seetickets.us' + linksToScrape[ i ], venueName, venuePhoneNumber, venueAddress);
+	// for (let i = 0; i < linksToScrape.length; i++) {
+		// let data = await getScrapedData(linksToScrape[ i ], venueName, venuePhoneNumber, venueAddress);
 
 		// Test Console Logout
 		// --------------------
-		console.log(data);
+		// console.log(data)
 		// --------------------
 	// Store The Data Extracted into the Database 
 	// await storeIntoDatabase(data); 
-	}
+	// }
 }	
+
+
+
+
+
 
 module.exports = scrapeTestingFunction;
 // -------------------------------------------------------

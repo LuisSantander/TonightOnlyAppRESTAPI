@@ -1,12 +1,12 @@
 
 
-
 CREATE TABLE events (
 	id INT NOT NULL AUTO_INCREMENT,
+	venueId	   VARCHAR(50) NOT NULL, 
 	eventMonth VARCHAR(50) NOT NULL,
-	eventDay   VARCHAR(50) NOT NULL,
+	eventDay   SMALLINT NOT NULL,
 	eventYear  VARCHAR(50) NOT NULL,
-	eventName  VARCHAR(50) NOT NULL, 
+	eventName  VARCHAR(200) NOT NULL, 
 	location   VARCHAR(50) NOT NULL, 
 	imageURL   VARCHAR(200) NOT NULL,
 	ticketLink VARCHAR(200) NOT NULL,

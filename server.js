@@ -2,90 +2,113 @@
 // -------------------------------------------
 const express 		= require('express'); 
 const bodyParser    = require('body-parser');
-const mysql 		= require('mysql'); 
 const dateFormat    = require('dateformat'); 
 const app     		= express(); 
 // -------------------------------------------
 // Initial Conditions 
 const PORT = process.env.PORT || 3000;
 // -------------------------------------------
+
+// Get Database MYSQL pool 
+// -------------------------------------------
+const pool = require('./config/database_config');
+
 // Imported Scraper Logic 
-const runScraperEngine = require('./scraper_logic_files/master_scraper_engine'); 
+// const runScraperEngine = require('./scraper_logic_files/master_scraper_engine'); 
+const getLosAngelesEvents = require('./eventbrite_api_logic/los_angeles_api_logic'); 
 
 // REST API Keys and Database Configuration
 // --------------------------------------
 const secret = require ('./config/dev_keys.js'); 
 
-// Connect to MySQL Database 
-// --------------------------------------
-const connection = mysql.createConnection({
-					host     : secret.MYSQL_DEV_HOST,
-					user     : secret.MYSQL_DEV_USER,
-					password : secret.MYSQL_DEV_PASS,
-					database : secret.MYSQL_DEV_DB
-				});
-
-// connection.connect((err) => {
-
-// 	if(err) {
-// 		console.log('error 1: mysql error connecting: ' + err.stack); 
-// 		return; 
-// 	}
-
-// 	console.log('connected as id ' + connection.threadId);
-// });
-
-// connection.query('USE tonight_only_db');
-
 // -------------------------------------------
 // Middleware
 app.use(bodyParser.json());
 // -------------------------------------------
-// GET Routes 
-app.get('/scrape', async (req, res, next) => {
-	let status = ''; 
-	// await runScraperEngine('timeoc', () => status = 'ok'); 
-	// await runScraperEngine('sound', () => status = 'ok'); 
-	await runScraperEngine('avalon', () => status = 'ok'); 
 
-	res.send({status});
+///////////////////////////////////////////////////////////////////////// 
+/////////  GET Requests 
+app.get('/get_event_data', async (req, res, next) => {
+
+	await getLosAngelesEvents(); 
+	res.send({success: true}); 
 });
 
-app.get('/get_all_events', (req, res, next) => {
+// Gets the specified venue data for 
+app.post('/get_venue_events', (req, res, next) => { // change to app.post for axios 
 
-	const query = 'SELECT * FROM events WHERE eventMonth="July"'; 
+	const { venueId } = req.body; 
 
-	// Query The Database 
-	connection.query(query, (err, rows) => {
+	// Do the Database Abstraction Work Here 
+	// ---------------------
+	pool.getConnection(function(err, connection) {
+		  if (err) throw err; // not connected!
 
-		let listOfEvents = [{
-			month: 'July 2018',
-			events: [] 
-		}];
+		  const eventsQueryString = `SELECT eventMonth, eventDay, eventYear, eventName FROM events WHERE events.venueId="${venueId}" 
+		  					         AND (events.eventMonth="August" OR events.eventMonth="September") ORDER BY events.eventMonth`;
 
-		if (!err) {
-			// Format The Date 
-			for (let i = 0; i < rows.length; i++) {
-				let { eventMonth, eventDay, eventYear, location, eventName } = rows[ i ]; 
-				let eventFullDate = `${eventMonth} ${eventDay}, ${eventYear}`;
-				eventFullDate = dateFormat(new Date(eventFullDate), "ddd. mmmm dS yyyy"); 
+		  const getVenueInfoQueryString = `SELECT * FROM venues WHERE venues.id=${venueId}`;
 
-				listOfEvents[ 0 ].events.push(eventFullDate + ' - ' + eventName + ' @ ' + location);
-			}	
+		  // Use the connection
+		  connection.query(eventsQueryString, function (error, results, fields) {
+		    // Handle error after the release.
+		    if (error) {
+		    	console.log(error); 
+		    	res.send({data: [{error: 'Database Error: Cant connect'}]});
+		    }
 
-		 	res.send({status: "success", events: listOfEvents});
+		  	// Construct payload for the client 
+		    const payload = [
+		    	{
+		    		eventMonth: 'August',
+		    		eventYear: '2018',
+		    		events: []
+		    	},
+		    	{
+		    		eventMonth: 'September',
+		    		eventYear: '2018',
+		    		events: []
+		    	}
+		    ]
 
-		} else {
-			console.log(err); 
-			res.send({status: "Something Went Wrong", events: []}); 
-		}
-	})
+		    // When done with the connection, release it.
+		    connection.release(); 
+
+		   	results.map((event) => {
+
+		   		const formattedDate = dateFormat(`${event.eventMonth} ${event.eventDay} ${event.eventYear}`, 'mmm. dS')
+
+		    	if (event.eventMonth === "August") {
+		    		payload[ 0 ].events.push(`${formattedDate} - ${event.eventName}`); 
+		    	} else {
+		    		payload[ 1 ].events.push(`${formattedDate} - ${event.eventName}`); 
+		    	}
+		    });
+
+		   	connection.query(getVenueInfoQueryString, function(error, results, fields) {
+
+		   		res.send({venueEvents: payload, venueInfo: results[ 0 ]});  
+		   	});
+
+		  });
+	});
+	// ---------------------
 });
 
 // -------------------------------------------
 // Activate Server Engine 
 app.listen(PORT, () => console.log(`Listening on PORT: ${PORT}`));
 
-// Expose Dependant Modules to Other Files 
-// -------------------------------------------
-module.exports = connection; 
+/////////////////////
+// Previous Logic 
+// GET Routes 
+// app.get('/scrape', async (req, res, next) => {
+// 	let status = ''; 
+// 	// await runScraperEngine('timeoc', () => status = 'ok'); 
+// 	// await runScraperEngine('sound', () => status = 'ok'); 
+// 	// await runScraperEngine('avalon', () => status = 'ok'); 
+// 	// await runScraperEngine('exla', () => status = 'ok'); 
+// 	await runScraperEngine('academy', () => status = 'ok'); 
+
+// 	res.send({status});
+// });
