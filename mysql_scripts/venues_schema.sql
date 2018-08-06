@@ -12,7 +12,9 @@ CREATE TABLE venues (
 	PRIMARY KEY(id)
 );
 
-
-
+# Store Academy Data 
 INSERT INTO venues(id, venueName, venueAddress, venuePhone, venueWebsite, venueLogo) 
 VALUES ("24829018", "Academy", "6021 Hollywood Blvd, Los Angeles, CA 90028", " (323) 785-2680", "https://www.academy.la/", "academy.jpeg");
+
+
+
