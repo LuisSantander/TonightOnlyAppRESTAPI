@@ -15,7 +15,7 @@ const pool = require('./config/database_config');
 
 // Imported Scraper Logic 
 // const runScraperEngine = require('./scraper_logic_files/master_scraper_engine'); 
-const getLosAngelesEvents = require('./eventbrite_api_logic/los_angeles_api_logic'); 
+const getLosAngelesEvents = require('./api/eventbrite_aggregation_engine'); 
 
 // REST API Keys and Database Configuration
 // --------------------------------------
@@ -30,8 +30,8 @@ app.use(bodyParser.json());
 /////////  GET Requests 
 app.get('/get_event_data', async (req, res, next) => {
 
-	await getLosAngelesEvents(); 
-	res.send({success: true}); 
+	const status = await getLosAngelesEvents(); 
+	res.send(status); 
 });
 
 // Gets the specified venue data for 
